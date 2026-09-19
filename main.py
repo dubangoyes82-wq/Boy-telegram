@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 @bot.message_handler(commands=['start'])
 def start(m):
-    bot.reply_to(m, "Hola! Soy tu bot Goyes, ya estoy 24/7 en Render funcionando.")
+    bot.reply_to(m, "Hola! Soy tu bot Goyes, ya estoy activo!")
 
 @bot.message_handler(func=lambda m: True)
 def echo(m):
@@ -16,12 +16,13 @@ def echo(m):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return "ok", 200
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return "ok", 200
+    return "error", 403
 
 @app.route('/')
 def home():
     return "Bot activo!", 200
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
