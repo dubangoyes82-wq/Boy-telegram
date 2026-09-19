@@ -3,12 +3,13 @@ from flask import Flask, request
 import telebot
 
 TOKEN = os.environ.get("BOT_TOKEN")
+print(f"Token cargado: {TOKEN[:10]}...") # para ver en logs si cargó
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 @bot.message_handler(commands=['start'])
 def start(m):
-    bot.reply_to(m, "Hola! Soy tu bot Goyes, ya estoy activo!")
+    bot.reply_to(m, "Hola! Soy tu bot Goyes, ya estoy activo! ✅")
 
 @bot.message_handler(func=lambda m: True)
 def echo(m):
@@ -16,12 +17,13 @@ def echo(m):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    if request.headers.get('content-type') == 'application/json':
-        json_string = request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
+    try:
+        json_str = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_str)
         bot.process_new_updates([update])
-        return "ok", 200
-    return "error", 403
+    except Exception as e:
+        print(f"Error webhook: {e}")
+    return "ok", 200
 
 @app.route('/')
 def home():
